@@ -1,71 +1,252 @@
 #include "s21_matrix_oop.h"
 
+void S21Matrix::PrintMatrix(const S21Matrix& other) {
+    if(other.matrix_) {
+        int count = 0;
+        for(int i = 0; i < rows_; ++i) {
+            for(int j = 0; j < cols_; ++j) {
+                other.matrix_[i][j] = count;
+                std::cout << other.matrix_[i][j] << " ";
+                count++;
+            }
+        std::cout << std::endl;
+        }  
+    }
+}
+
+void S21Matrix::FreeMatrix(const S21Matrix& other) {
+    if (other.matrix_) {
+        for (int i = 0; i < other.rows_; ++i) {
+            delete [] other.matrix_[i];
+        }
+        delete [] other.matrix_;
+    }
+}
+
+void S21Matrix::Allocate() {
+    this->matrix_ = new double* [rows_];
+    for (int i = 0; i < rows_; ++i) {
+        matrix_[i] = new double [cols_];
+    }
+}
+
+void S21Matrix::Deallocate(int rows, int cols) {
+    S21Matrix b(rows, cols);
+    b.matrix_ = new double *[rows];
+    for (int i = 0; i < rows; ++i) {
+        b.matrix_[i] = new double[cols];
+    }
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            b.matrix_[i][j] = matrix_[i][j];
+        }
+    }
+    FreeMatrix(*this);
+    rows_ = rows;
+    cols_ = cols;
+    matrix_ = b.matrix_;
+    b.rows_ = 0;
+    b.cols_ = 0;
+    b.matrix_ = nullptr;
+}
 
 S21Matrix::S21Matrix() {
-    int _rows = 3;
-    int _cols = 3;
-    // that is how memory allocation works in C++
-   double * _p = new double[_rows * _cols]();
+    this->rows_ = 3;
+    this->cols_ = 3;
+    Allocate();
 }
 
-/* : <attribute_name>(value) syntax helps to automatically fill attributes with 
-values */
-S21Matrix::S21Matrix(int rows, int cols) : _rows(rows), _cols(cols) {
-    double *_p = new double[_rows * _cols]();
-}
-
-S21Matrix::S21Matrix(const S21Matrix& o) : _rows(o._rows), _cols(o._cols) {
-    _p = new double[o._rows * o._cols]();
-    /* standard cpp function: copies memory of o._rows * o._cols * sizeof(double) 
-    from o.p pointer to _p pointer */
-    std::memcpy(_p, o._p, o._rows * o._cols * sizeof(double));
-}
-
-S21Matrix::S21Matrix(CMatrix&& o) {
-    if (_rows * _cols == o._rows * o._cols) {
-        std::memcpy(_p, o._p, o._cols * o._rows * sizeof(double));
+S21Matrix::S21Matrix(int rows, int cols) : rows_(rows), cols_(cols) {
+    if(rows <= 0 || cols <= 0) {
+        throw std::out_of_range("Incorrect input, rows and cols must be more than zero");
     } else {
-        delete[] m_ptValues;
-        _p = new double[o._rows * o._cols]();
-        std::memcpy(_p, o._p, o._cols * o._rows * sizeof(double));
+        this->rows_ = rows;
+        this->cols_ = cols;
     }
-    _rows = o._rows;
-    _cols = o._cols;
-    delete o._p;
-    o._rows = 0;
-    o._cpls = 0;
+    Allocate();
+}
+
+S21Matrix::S21Matrix(const S21Matrix& other) : rows_(other.rows_), cols_(other.cols_) {
+    Allocate();
+    for (int i = 0; i < rows_; ++i) {
+        for (int j = 0; j < cols_; ++j) {
+            matrix_[i][j] = other.matrix_[i][j];
+        }
+    }
+}
+
+S21Matrix::S21Matrix(S21Matrix&& other) {
+    if ((this->rows_ == other.rows_) && (this->cols_ == other.cols_)) {
+        *this = std::move(other);
+    } else {
+        Deallocate(other.rows_, other.cols_);
+        *this = std::move(other);
+    }
+    
 }
 
 S21Matrix::~S21Matrix() {
-    if (_p) {
-        // free
-        delete[] _p;
+    if (matrix_) {
+        for (int i = 0; i < rows_; ++i) {
+            delete [] matrix_[i];
+        }
+        delete [] matrix_;
     }
 }
 
-S21Matrix::SumMatrix(const S21Matrix& o) {
-    // exception throwing example
-    if (_rows != o._rows || _cols != o._cols) {
-        throw std::out_of_range(
-            "Incorrect input, matrices should have the same size");
+S21Matrix& S21Matrix::operator=(S21Matrix&& other) {
+    if (this != &other) {
+        FreeMatrix(*this);
+        rows_ = other.rows_;
+        cols_ = other.cols_;
+        matrix_ = other.matrix_;
+        other.rows_ = 0;
+        other.cols_ = 0;
+        other.matrix_ = nullptr;
     }
-    for (auto i = 0; i < _rows + _cols; i++) {
-        _p[i] = _p[i] + o._p[i];
-    }
+    return *this;
 }
 
-// operator overload example
-S21Matrix S21Matrix::operator+(const S21Matrix& o) {
-    // creating result matrix
-    S21Matrix res(_rows, _cols);
-    res.sum_matrix(o);
-    return res;
+S21Matrix& S21Matrix::operator+=(const S21Matrix& other){
+    SumMatrix(other);
+    return *this;
 }
 
-// index operator overload
-int& CMatrix::operator()(int row, int col) {
-    if (row >= _rows || col >= _cols) {
-        throw std::out_of_range("Incorrect input, index is out of range");
+S21Matrix S21Matrix::operator+(const S21Matrix& other){
+    S21Matrix result(*this);
+    result.SumMatrix(other);
+    return result;
+}
+S21Matrix& S21Matrix::operator=(const S21Matrix& other) {
+    if (this != &other) {
+        *this = std::move(S21Matrix(other));
     }
-    return _p[row * _cols + col];
+    return *this;
+}
+
+S21Matrix& S21Matrix::operator-=(const S21Matrix& other) {
+    SubMatrix(other);
+    return *this;
+}
+
+S21Matrix S21Matrix::operator-(const S21Matrix& other) {
+    S21Matrix result(*this);
+    result.SubMatrix(other);
+    return result;
+}
+
+// записывает элемент по i j месту
+double &S21Matrix::operator()(int i, int j) {
+    if (i >= rows_ || j >= cols_ || i < 0 || j < 0) {
+        throw std::out_of_range("Index out of range");
+    }
+    return matrix_[i][j];
+}
+
+//считывает элемент по i j месту
+double &S21Matrix::operator()(int i, int j) const {
+    if (i >= rows_ || j >= cols_ || i < 0 || j < 0) {
+        throw std::out_of_range("Index out of range");
+    }
+    return matrix_[i][j];
+}
+
+
+/*S21Matrix S21Matrix::operator*(const S21Matrix& other) {};
+
+friend S21Matrix S21Matrix::operator*(const double num, const S21Matrix& other) {
+
+}
+
+friend S21Matrix S21Matrix::operator*=(const double num, const S21Matrix& other) {
+
+}
+
+S21Matrix S21Matrix::operator*=(const S21Matrix& other) {
+
+}
+
+bool S21Matrix::operator==(const S21Matrix& other) {
+    bool result = EqMatrix(other);
+    return result;
+} */
+        
+
+bool S21Matrix::EqMatrix(const S21Matrix& other) {
+    bool result = true;
+    if (other.matrix_ == nullptr || matrix_ == nullptr) {
+        result = false;
+    } else if (rows_ != other.rows_ || cols_ != other.cols_) {
+        result = false;
+    } else {
+        for (int i = 0; i < rows_ && result; ++i) {
+            for (int j = 0; j < cols_ && result; ++j) {
+                if (fabs(other.matrix_[i][j] - matrix_[i][j]) > 1e-6) {
+                    result = false;
+                }
+            }
+        }
+    }
+    return result;
+}
+
+void S21Matrix::SumMatrix(const S21Matrix& other) {
+    if (other.matrix_ == nullptr || matrix_ == nullptr) {
+        throw std::out_of_range("Incorrect matrix");
+    } else if (rows_ != other.rows_ || cols_ != other.cols_) {
+        throw std::out_of_range("Different size of matrix");
+    } else {
+        for (int i = 0; i < rows_; ++i) {
+            for (int j = 0; j < cols_; ++j) {
+                matrix_[i][j] = matrix_[i][j] + other.matrix_[i][j];
+            }
+        }
+    }
+}
+void S21Matrix::SubMatrix(const S21Matrix& other) {
+    if (other.matrix_ == nullptr || matrix_ == nullptr) {
+        throw std::out_of_range("Incorrect matrix");
+    } else if (rows_ != other.rows_ || cols_ != other.cols_) {
+        throw std::out_of_range("Different size of matrix");
+    } else {
+        for (int i = 0; i < rows_; ++i) {
+            for (int j = 0; j < cols_; ++j) {
+                matrix_[i][j] = matrix_[i][j] - other.matrix_[i][j];
+            }
+        }
+    }
+
+}
+/*void S21Matrix::MulNumber(const double num) {
+
+}
+void S21Matrix::MulMatrix(const S21Matrix& other) {
+
+}
+S21Matrix S21Matrix::Transpose() {
+
+}
+S21Matrix S21Matrix::CalcComplements() {
+
+}
+double S21Matrix::Determinant() {
+
+}
+S21Matrix S21Matrix::InverseMatrix() {
+
+} */
+
+int main() {
+    S21Matrix a;
+    a.PrintMatrix(a);
+    S21Matrix b(3, 3);
+    b.PrintMatrix(b);
+    a.SumMatrix(b);
+    for(int i = 0; i < a.GetRows(); ++i) {
+        for(int j = 0; j < a.GetCols(); ++j) {
+            std::cout << a(i, j) << " ";
+        }
+        std::cout << std::endl;
+    }
+    return 0;
 }
