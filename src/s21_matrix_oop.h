@@ -1,59 +1,64 @@
 #ifndef __S21_MATRIX_OOP_H__
 #define __S21_MATRIX_OOP_H__
 
-#include <iostream>
-#include <cmath>
-#include <algorithm>
+#include <cstddef>
 
 class S21Matrix {
-    private:
-        int rows_, cols_; //Количество строк и столбцов
-        double **matrix_; //Указатель на матрицу
-        void Allocate();
-        void Deallocate(int rows, int cols);
-        void FreeMatrix(const S21Matrix& other);
-        S21Matrix Minor();
+public:
+    using Item = double;
+    using ItemsPtr = double*;
 
-    public:
-        void PrintMatrix(const S21Matrix& other);
-        // Constructors & Destructors
-        S21Matrix(); // Дефолтный констуктор
-        S21Matrix(int rows, int cols); //Параметризированный конструктор
-        S21Matrix(const S21Matrix& other); //Конструктор копирования
-        S21Matrix(S21Matrix&& other); //Конструктор переноса
-        ~S21Matrix(); // Деструктор
+    constexpr static size_t kDefaultRowsNum = 3;
+    constexpr static size_t kDefaultColsNum = 3;
+    constexpr static Item kDefaultValue = 0.0;
 
-        // Accessors & mutators
-        int GetRows() const {return rows_;};
-        int GetCols() const {return cols_;};
-        int SetRows(int rows) {rows_ = rows; return rows_;};
-        int SetCols(int cols) {cols_ = cols; return cols_;};
+private:
+    size_t rows_;       // Кол-во строк
+    size_t cols_;       // Кол-во столбцов
+    ItemsPtr matrix_;   // Указатель на данные матрицы
 
-        // Operators
-        S21Matrix& operator=(const S21Matrix& other);
-        S21Matrix& operator=(S21Matrix&& other); 
-        double &operator()(int i, int j); // записывает элемент по i j месту
-        double &operator()(int i, int j) const; //считывает элемент по i j месту
-        S21Matrix& operator+=(const S21Matrix& other);                            
-        S21Matrix operator+(const S21Matrix& other);
-        S21Matrix& operator-=(const S21Matrix& other);
-        S21Matrix operator-(const S21Matrix& other);
-        S21Matrix operator*(const S21Matrix& other);
-        friend S21Matrix operator*(const double num, const S21Matrix& other);
-        S21Matrix operator*=(const S21Matrix& other);
-        friend S21Matrix operator*=(const double num, const S21Matrix& other);
-        bool operator==(const S21Matrix& other);
-        
-        // Methods
-        bool EqMatrix(const S21Matrix& other);
-        void SumMatrix(const S21Matrix& other);
-        void SubMatrix(const S21Matrix& other);
-        void MulNumber(const double num);
-        void MulMatrix(const S21Matrix& other);
-        S21Matrix Transpose();
-        S21Matrix CalcComplements();
-        double Determinant();
-        S21Matrix InverseMatrix();
+public:
+    S21Matrix();
+    S21Matrix(const size_t r, const size_t c, const Item& init_value = kDefaultValue);
+    S21Matrix(const S21Matrix& other);
+    S21Matrix(S21Matrix&& other);
+    ~S21Matrix();
+
+public:
+    void PrintlnMatrix() const;
+
+    bool EqMatrix(const S21Matrix& other) const;
+    void SumMatrix(const S21Matrix& other);
+    void SubMatrix(const S21Matrix& other);
+    void MulNumber(const Item num);
+    void MulMatrix(const S21Matrix& other);
+    S21Matrix Transpose() const;
+    S21Matrix CalcComplements() const;
+    Item Determinant() const;
+    S21Matrix InverseMatrix() const;
+
+    S21Matrix operator+(const S21Matrix& other) const;
+    S21Matrix operator-(const S21Matrix& other) const;
+    S21Matrix operator*(const S21Matrix& other) const;
+    S21Matrix operator*(const Item num) const;
+    bool operator==(const S21Matrix& other) const;
+
+    S21Matrix& operator=(const S21Matrix& other);
+    S21Matrix& operator=(S21Matrix&& other);
+    S21Matrix& operator+=(const S21Matrix& other);
+    S21Matrix& operator-=(const S21Matrix& other);
+    S21Matrix& operator*=(const S21Matrix& other);
+    S21Matrix& operator*=(const Item num);
+
+    Item& operator()(const size_t i, const size_t j);
+    const Item& operator()(const size_t i, const size_t j) const;
+
+private:
+    static ItemsPtr _AllocateMatrixData(const size_t r, const size_t c);
+    static void _DeallocateMatrixData(ItemsPtr data);
+    size_t _GetDataIdx(const size_t i, const size_t j) const;
+
+    void _Deallocate();
 };
 
 #endif
