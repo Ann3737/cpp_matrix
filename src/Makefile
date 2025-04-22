@@ -20,6 +20,7 @@ clean:
 	rm -rf gcov
 	rm -f tests/test
 	rm -f *.gcda *.gcno
+	rm -f *.a *.o
 	cd tests && rm -f *.gcda *.gcno
 
 test: clean
