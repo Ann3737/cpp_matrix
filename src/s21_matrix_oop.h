@@ -3,10 +3,6 @@
 
 #include <cstddef>
 
-// constexpr size_t S21Matrix::kDefaultRowsNum;
-// constexpr size_t S21Matrix::kDefaultColsNum;
-// constexpr S21Matrix::Item S21Matrix::kDefaultValue;
-
 class S21Matrix {
  public:
   using Item = double;
