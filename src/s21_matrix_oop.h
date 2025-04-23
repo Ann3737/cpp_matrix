@@ -2,6 +2,7 @@
 #define __S21_MATRIX_OOP_H__
 
 #include <cstddef>
+#include <unistd.h>
 
 class S21Matrix {
  public:
@@ -11,6 +12,7 @@ class S21Matrix {
   inline static constexpr size_t kDefaultRowsNum = 3;
   inline static constexpr size_t kDefaultColsNum = 3;
   inline static constexpr Item kDefaultValue = 0.0;
+  inline static constexpr Item kEqualityDiff = 1e-6;
 
  private:
   size_t rows_;      // Кол-во строк
@@ -58,15 +60,15 @@ class S21Matrix {
   // Accessors & Mutators
   size_t GetRows() const { return rows_; };
   size_t GetCols() const { return cols_; };
-  void SetRows(const int row);
-  void SetCols(const int col);
+  void SetRows(const ssize_t row);
+  void SetCols(const ssize_t col);
 
  private:
   static ItemsPtr _AllocateMatrixData(const size_t r, const size_t c);
   static void _DeallocateMatrixData(ItemsPtr data);
   size_t _GetDataIdx(const size_t i, const size_t j) const;
   void _Deallocate();
-  S21Matrix _Minor(size_t row, size_t col) const;
+  S21Matrix _GetMinor(size_t row, size_t col) const;
 };
 
 #endif

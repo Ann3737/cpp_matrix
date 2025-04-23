@@ -76,6 +76,21 @@ TEST(EqMatrixTest, SignificantDifference) {
     EXPECT_FALSE(matrix1 == matrix2);
 }
 
+TEST(SetRowsTest, DecreaseRowsWithDataLoss) {
+  S21Matrix m(3, 3);
+  m(2, 2) = 5.0;
+  m.SetRows(2);
+  EXPECT_EQ(m.GetRows(), 2);
+  EXPECT_THROW(m(2, 2), std::out_of_range);
+}
+
+TEST(OperatorPlusEqualTest, SelfAssignment) {
+  S21Matrix m(2, 2);
+  m(0, 0) = 1.0;
+  m += m;
+  EXPECT_DOUBLE_EQ(m(0, 0), 2.0);
+}
+
 TEST(OperatorTest, PlusEquals) {
   S21Matrix matrix1(2, 2);
   matrix1(0, 0) = 1;
@@ -133,6 +148,12 @@ TEST(OperatorTest, MultiplyEqualsScalar) {
   EXPECT_DOUBLE_EQ(matrix(1, 1), 8.0);
 }
 
+TEST(MulMatrixTest, MultiplyByZeroMatrix) {
+  S21Matrix m1(2, 2), m2(2, 2); 
+  m1.MulMatrix(m2);
+  EXPECT_DOUBLE_EQ(m1(0, 0), 0.0);
+}
+
 // Тесты граничных значений
 TEST(EdgeCaseTest, ZeroSizeMatrix) {
   EXPECT_THROW(S21Matrix matrix1(0ul, 0ul), std::out_of_range);
@@ -154,6 +175,16 @@ TEST(MethodTest, SetRowsIncrease) {
       EXPECT_DOUBLE_EQ(matrix1(i, j), 0.0);
     }
   }
+}
+
+TEST(EqMatrixTest, DifferentRowsSameCols) {
+  S21Matrix m1(2, 3), m2(3, 3);
+  EXPECT_FALSE(m1 == m2);
+}
+
+TEST(EqMatrixTest, SameRowsDifferentCols) {
+  S21Matrix m1(3, 2), m2(3, 3);
+  EXPECT_FALSE(m1 == m2);
 }
 
 TEST(MethodTest, SetRowsDecrease) {
@@ -264,6 +295,19 @@ TEST(InverseMatrixTest, ZeroDeterminantException) {
 TEST(InverseMatrixTest, NonSquareMatrixException) {
   S21Matrix matrix(2, 3);
   EXPECT_THROW(matrix.InverseMatrix(), std::domain_error);
+}
+
+TEST(DeterminantTest, 1x1Matrix) {
+  S21Matrix m(1, 1);
+  m(0, 0) = 42.0;
+  EXPECT_DOUBLE_EQ(m.Determinant(), 42.0);
+}
+
+TEST(InverseMatrixTest, IdentityMatrix) {
+  S21Matrix m(3, 3);
+  m(0, 0) = 1.0; m(1, 1) = 1.0; m(2, 2) = 1.0;
+  S21Matrix inv = m.InverseMatrix();
+  EXPECT_TRUE(inv == m);
 }
 
 TEST(CalcComplementsTest, Basic3x3) {

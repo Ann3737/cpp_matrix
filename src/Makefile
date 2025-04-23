@@ -35,7 +35,10 @@ gcov_report: clean
 	mkdir -p gcov
 	$(CPPFLAGS) $(SRC) $(GCOV_FLAGS) -o gcov/gcov_test
 	cd gcov && ./gcov_test
-	gcovr --html-details -o gcov/report.html --exclude-unreachable-branches --exclude-throw-branches
+	gcovr --html-details -o gcov/report.html \
+		--exclude 'tests/s21_matrix_tests.cpp' \
+		--exclude-unreachable-branches \
+		--exclude-throw-branches 
 	$(OPEN) gcov/report.html
 
 clang_format: clean

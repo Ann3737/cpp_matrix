@@ -2,50 +2,40 @@
 
 #include <iostream>
 
-// void S21Matrix::PrintlnMatrix() const {
-//     for (size_t i = 0; i < this->rows_; ++i) {
-//         auto sep = "";
-//         for (size_t j = 0; j < this->cols_; ++j) {
-//             const size_t m = this->_GetDataIdx(i, j);
-//             std::cout << sep << this->matrix_[m];
-//             sep = " ";
-//         }
-//         std::cout << std::endl;
-//     }
-// }
-
-void S21Matrix::SetRows(const int row) {
+void S21Matrix::SetRows(const ssize_t row) {
   if (row < 1) {
     throw std::out_of_range("Incorrect input, rows should be more than zero");
   }
-  S21Matrix res(row, this->cols_);
-  for (int i = 0; i < row; ++i) {
-    for (int j = 0; j < (int)this->cols_; ++j) {
-      size_t m = res._GetDataIdx(i, j);
-      if (i < (int)this->rows_) {
-        size_t n = this->_GetDataIdx(i, j);
+  const size_t r = row;
+  S21Matrix res(r, this->cols_);
+  for (size_t i = 0; i < r; ++i) {
+    for (size_t j = 0; j < this->cols_; ++j) {
+      const size_t m = res._GetDataIdx(i, j);
+      if (i < this->rows_) {
+        const size_t n = this->_GetDataIdx(i, j);
         res.matrix_[m] = this->matrix_[n];
       } else {
-        res.matrix_[m] = 0.0;
+        res.matrix_[m] = kDefaultValue;
       }
     }
   }
   *this = res;
 }
 
-void S21Matrix::SetCols(const int col) {
+void S21Matrix::SetCols(const ssize_t col) {
   if (col < 1) {
     throw std::out_of_range("Incorrect input, rows should be more than zero");
   }
-  S21Matrix res(this->rows_, col);
-  for (int i = 0; i < (int)this->rows_; ++i) {
-    for (int j = 0; j < col; ++j) {
-      size_t m = res._GetDataIdx(i, j);
-      if (j < (int)this->cols_) {
-        size_t n = this->_GetDataIdx(i, j);
+  const size_t c = col;
+  S21Matrix res(this->rows_, c);
+  for (size_t i = 0; i < this->rows_; ++i) {
+    for (size_t j = 0; j < c; ++j) {
+      const size_t m = res._GetDataIdx(i, j);
+      if (j < this->cols_) {
+        const size_t n = this->_GetDataIdx(i, j);
         res.matrix_[m] = this->matrix_[n];
       } else {
-        res.matrix_[m] = 0.0;
+        res.matrix_[m] = kDefaultValue;
       }
     }
   }
@@ -168,27 +158,26 @@ S21Matrix S21Matrix::operator*(const Item num) const {
 }
 
 bool S21Matrix::operator==(const S21Matrix& other) const {
-  S21Matrix res(*this);
-  return res.EqMatrix(other);
+  return this->EqMatrix(other);
 }
 
 S21Matrix& S21Matrix::operator+=(const S21Matrix& other) {
-  SumMatrix(other);
+  this->SumMatrix(other);
   return *this;
 }
 
 S21Matrix& S21Matrix::operator-=(const S21Matrix& other) {
-  SubMatrix(other);
+  this->SubMatrix(other);
   return *this;
 }
 
 S21Matrix& S21Matrix::operator*=(const S21Matrix& other) {
-  MulMatrix(other);
+  this->MulMatrix(other);
   return *this;
 }
 
 S21Matrix& S21Matrix::operator*=(const Item num) {
-  MulNumber(num);
+  this->MulNumber(num);
   return *this;
 }
 
@@ -198,9 +187,10 @@ bool S21Matrix::EqMatrix(const S21Matrix& other) const {
   if (this->rows_ != other.rows_ || this->cols_ != other.cols_) {
     res = false;
   } else {
-    for (size_t i = 0; i < this->rows_ * this->cols_ && res; ++i) {
-      if (std::fabs(this->matrix_[i] - other.matrix_[i]) > 1e-6) {
+    for (size_t i = 0; i < this->rows_ * this->cols_; ++i) {
+      if (std::fabs(this->matrix_[i] - other.matrix_[i]) > kEqualityDiff) {
         res = false;
+        break;
       }
     }
   }
@@ -239,9 +229,9 @@ void S21Matrix::MulMatrix(const S21Matrix& other) {
   for (size_t i = 0; i < this->rows_; ++i) {
     for (size_t j = 0; j < other.cols_; ++j) {
       for (size_t k = 0; k < this->cols_; ++k) {
-        size_t r = res._GetDataIdx(i, j);
-        size_t t = this->_GetDataIdx(i, k);
-        size_t o = other._GetDataIdx(k, j);
+        const size_t r = res._GetDataIdx(i, j);
+        const size_t t = this->_GetDataIdx(i, k);
+        const size_t o = other._GetDataIdx(k, j);
         res.matrix_[r] += this->matrix_[t] * other.matrix_[o];
       }
     }
@@ -253,15 +243,15 @@ S21Matrix S21Matrix::Transpose() const {
   S21Matrix res(this->cols_, this->rows_);
   for (size_t i = 0; i < this->rows_; ++i) {
     for (size_t j = 0; j < this->cols_; ++j) {
-      size_t m = this->_GetDataIdx(i, j);
-      size_t n = res._GetDataIdx(j, i);
+      const size_t m = this->_GetDataIdx(i, j);
+      const size_t n = res._GetDataIdx(j, i);
       res.matrix_[n] = this->matrix_[m];
     }
   }
   return res;
 }
 
-S21Matrix S21Matrix::_Minor(size_t row, size_t col) const {
+S21Matrix S21Matrix::_GetMinor(size_t row, size_t col) const {
   S21Matrix MinorMatrix(this->rows_ - 1, this->cols_ - 1);
   size_t MinorI = 0;
   for (size_t i = 0; i < this->rows_; ++i) {
@@ -269,8 +259,8 @@ S21Matrix S21Matrix::_Minor(size_t row, size_t col) const {
     size_t MinorJ = 0;
     for (size_t j = 0; j < this->cols_; ++j) {
       if (j == col) continue;
-      size_t m = MinorMatrix._GetDataIdx(MinorI, MinorJ);
-      size_t o = this->_GetDataIdx(i, j);
+      const size_t m = MinorMatrix._GetDataIdx(MinorI, MinorJ);
+      const size_t o = this->_GetDataIdx(i, j);
       MinorMatrix.matrix_[m] = this->matrix_[o];
       MinorJ++;
     }
@@ -291,8 +281,8 @@ S21Matrix::Item S21Matrix::Determinant() const {
           this->matrix_[1] * this->matrix_[2];
   } else {
     for (size_t i = 0; i < this->cols_; ++i) {
-      S21Matrix MinorMatrix = this->_Minor(0, i);
-      size_t t = this->_GetDataIdx(0, i);
+      S21Matrix MinorMatrix = this->_GetMinor(0, i);
+      const size_t t = this->_GetDataIdx(0, i);
       res += this->matrix_[t] * std::pow(-1.0, i) * MinorMatrix.Determinant();
     }
   }
@@ -306,8 +296,8 @@ S21Matrix S21Matrix::CalcComplements() const {
   S21Matrix res(this->rows_, this->cols_);
   for (size_t i = 0; i < this->rows_; ++i) {
     for (size_t j = 0; j < this->cols_; ++j) {
-      S21Matrix MinorMatrix = this->_Minor(i, j);
-      size_t n = res._GetDataIdx(i, j);
+      S21Matrix MinorMatrix = this->_GetMinor(i, j);
+      const size_t n = res._GetDataIdx(i, j);
       res.matrix_[n] = std::pow(-1.0, i + j) * MinorMatrix.Determinant();
     }
   }
@@ -316,7 +306,7 @@ S21Matrix S21Matrix::CalcComplements() const {
 
 S21Matrix S21Matrix::InverseMatrix() const {
   Item d = this->Determinant();
-  if (std::fabs(d) < 1e-6) {
+  if (std::fabs(d) < kEqualityDiff) {
     throw std::invalid_argument("Determinant can't be equal zero");
   }
   S21Matrix res(this->rows_, this->cols_);
@@ -329,16 +319,3 @@ S21Matrix S21Matrix::InverseMatrix() const {
   }
   return res;
 }
-
-// int main () {
-
-//     S21Matrix a(4, 2, 1.0);
-//     a.PrintlnMatrix();
-//     S21Matrix b(4, 4, 2.0);
-//     b.PrintlnMatrix();
-//     S21Matrix c = b.InverseMatrix();
-//     c.PrintlnMatrix();
-//     // S21Matrix::Item c = b.Determinant();
-//     // std::cout << c << std::endl;
-//     return 0;
-// }
