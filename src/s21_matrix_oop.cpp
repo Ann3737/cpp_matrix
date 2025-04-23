@@ -122,15 +122,18 @@ S21Matrix& S21Matrix::operator=(S21Matrix&& other) {
 }
 
 S21Matrix::Item& S21Matrix::operator()(const size_t i, const size_t j) {
-  if (i >= rows_ || j >= cols_ || i < 0 || j < 0) {
+  if (i >= this->rows_ || j >= this->cols_ || i < 0 || j < 0) {
     throw std::out_of_range("Index out of range");
   }
-  return this->matrix_[_GetDataIdx(i, j)];
+  return this->matrix_[this->_GetDataIdx(i, j)];
 }
 
 const S21Matrix::Item& S21Matrix::operator()(const size_t i,
                                              const size_t j) const {
-  return this->matrix_[_GetDataIdx(i, j)];
+  if (i >= this->rows_ || j >= this->cols_ || i < 0 || j < 0) {
+    throw std::out_of_range("Index out of range");
+  }
+  return this->matrix_[this->_GetDataIdx(i, j)];
 }
 
 S21Matrix S21Matrix::operator+(const S21Matrix& other) const {
