@@ -1,8 +1,9 @@
 #ifndef __S21_MATRIX_OOP_H__
 #define __S21_MATRIX_OOP_H__
 
-#include <cstddef>
 #include <unistd.h>
+
+#include <cstddef>
 
 class S21Matrix {
  public:
@@ -29,8 +30,6 @@ class S21Matrix {
   ~S21Matrix();
 
  public:
-  void PrintlnMatrix() const;
-
   // Methods
   bool EqMatrix(const S21Matrix& other) const;
   void SumMatrix(const S21Matrix& other);

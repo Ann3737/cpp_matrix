@@ -1,4 +1,3 @@
-# all, clean, test, s21_matrix_oop.a
 CPPFLAGS = g++ -Wall -Werror -Wextra -std=c++20
 GCOV_FLAGS = -fprofile-arcs -ftest-coverage --coverage -lgtest -fprofile-update=atomic
 SRC = s21_matrix_oop.cpp tests/s21_matrix_tests.cpp
@@ -14,7 +13,7 @@ OPEN = xdg-open
 GCOV_FLAGS += -lsubunit -lm
 endif
 
-all: clean test s21_matrix_oop.a
+all: test clean s21_matrix_oop.a
 
 clean:
 	rm -rf gcov
@@ -30,6 +29,7 @@ test: clean
 s21_matrix_oop.a: clean
 	$(CPPFLAGS) -c s21_matrix_oop.cpp
 	ar -crs s21_matrix_oop.a s21_matrix_oop.o
+	rm -f s21_matrix_oop.o
 
 gcov_report: clean
 	mkdir -p gcov
